@@ -1,0 +1,55 @@
+{
+    // JSON Settings
+    "[json]": {
+        "editor.formatOnSave": true
+    },
+    //
+    // HTML Settings
+    "[html]": {
+        "editor.formatOnSave": true
+    },
+    // HTML Format Settings
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "html.format.contentUnformatted": "pre,code,textarea",
+    "html.format.endWithNewline": true,
+    "html.format.extraLiners": "head, body, /html",
+    "html.format.indentHandlebars": true,
+    "html.format.indentInnerHtml": true,
+    "html.format.maxPreserveNewLines": null,
+    "html.format.preserveNewLines": true,
+    "html.format.wrapLineLength": 120,
+    "html.format.wrapAttributes": "preserve",
+    // CSS validation inside HTML <style>
+    "html.validate.styles": true,
+    // Javascript validation inside HTML <script>
+    "html.validate.scripts": true,
+    //
+    // Javascript Settings
+    "[javascript]": {
+        "editor.formatOnSave": true
+    },
+    "alpine-intellisense.settings.languageScopes": "html, php",
+    // CSS Intellisense support in HTML/PHP files, List of CSS files
+    // Make sure php added in "css.enabledLanguages" in user level settings.json
+    // Extension URL: https://marketplace.visualstudio.com/items?itemName=ecmel.vscode-html-css
+    "css.styleSheets": [
+        "public/assets/css/styles.css"
+    ],
+    //
+    // PHP Settings
+    /* Recommend by PHP intelephense Extension to disable VS Code's built-in PHP suggestion
+       to avoid duplicate suggestions */
+    "php.suggest.basic": false,
+    // Disable PHP intelephense format
+    "intelephense.format.enable": false,
+    // Define php version for intelisense
+    "intelephense.environment.phpVersion": "8.4",
+    "php.validate.executablePath": "D:\\xampp\\php_8_4_8\\php.exe",
+    "laravel-pint.enable": true,
+    "[php]": {
+        "editor.defaultFormatter": "open-southeners.laravel-pint",
+        "editor.formatOnSave": true
+    },
+    "editor.inlineSuggest.enabled": false
+}

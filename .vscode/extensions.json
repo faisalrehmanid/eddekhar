@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "bmewburn.vscode-intelephense-client",
+        "rifi2k.format-html-in-php",
+        "pcbowers.alpine-intellisense",
+        "open-southeners.laravel-pint",
+        "neilbrayfield.php-docblocker",
+        "ecmel.vscode-html-css",
+        "editorconfig.editorconfig",
+        "xdebug.php-debug",
+        "streetsidesoftware.code-spell-checker"
+    ],
+    "unwantedRecommendations": []
+}
