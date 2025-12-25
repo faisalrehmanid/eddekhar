@@ -4,14 +4,20 @@ namespace App\Services;
 
 use App\Library\Sanitization\Sanitizer as S;
 use App\Library\Validation\Validator as V;
+use App\Storage\WalletStorage;
 
 class WalletService
 {
     private ServiceUtil $ServiceUtil;
 
-    public function __construct(ServiceUtil $ServiceUtil)
-    {
+    private WalletStorage $WalletStorage;
+
+    public function __construct(
+        ServiceUtil $ServiceUtil,
+        WalletStorage $WalletStorage
+    ) {
         $this->ServiceUtil = $ServiceUtil;
+        $this->WalletStorage = $WalletStorage;
     }
 
     public function createWallet(array $request)
@@ -32,7 +38,14 @@ class WalletService
 
         $Validator->validate();
 
-        return $this->ServiceUtil->success(['wallet' => 'created']);
+        // Insert in db
+        $wallet_id = $this->WalletStorage->insertWallet($owner_name, $currency);
+
+        $response = [
+            'wallet_id' => $wallet_id,
+        ];
+
+        return $this->ServiceUtil->success($response);
     }
 
     public function getWallet(array $request) {}
