@@ -282,7 +282,6 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $this->reconnectIfNeeded();
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -337,7 +336,6 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $this->reconnectIfNeeded();
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -443,7 +441,6 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $this->reconnectIfNeeded();
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
         $affectedRows = $stmt->rowCount();
@@ -492,7 +489,6 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $this->reconnectIfNeeded();
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
         $affectedRows = $stmt->rowCount();
@@ -558,7 +554,6 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $this->reconnectIfNeeded();
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
 
@@ -702,20 +697,6 @@ abstract class DbAbstract implements DbInterface
     protected function getPdo()
     {
         return $this->pdo;
-    }
-
-    /**
-     * Reconnect if PDO connection was closed
-     * Laravel automatically manages connection pooling and reconnection
-     *
-     * @return void
-     */
-    protected function reconnectIfNeeded()
-    {
-        // Laravel automatically reconnects if needed
-        if ($this->pdo === null) {
-            $this->pdo = LaravelDB::connection($this->connection)->getPdo();
-        }
     }
 
     /**

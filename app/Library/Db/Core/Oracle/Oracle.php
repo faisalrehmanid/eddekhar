@@ -187,7 +187,6 @@ class Oracle extends DbAbstract
             $this->debug($query, $values);
         }
 
-        $this->reconnectIfNeeded();
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
 
@@ -209,7 +208,6 @@ class Oracle extends DbAbstract
     {
         $queries = explode(';', $query);
 
-        $this->reconnectIfNeeded();
         foreach ($queries as $query) {
             $query = trim(str_replace(';', '', $query));
             if (! empty($query)) {

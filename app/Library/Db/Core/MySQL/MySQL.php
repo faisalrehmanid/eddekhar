@@ -158,7 +158,6 @@ class MySQL extends DbAbstract
             $this->debug($query, $values);
         }
 
-        $this->reconnectIfNeeded();
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
 
@@ -185,7 +184,6 @@ class MySQL extends DbAbstract
      */
     public function importSQL($query, $disconnect = true)
     {
-        $this->reconnectIfNeeded();
         $this->pdo->exec($query);
 
         if ($disconnect) { // Disconnect database connection after query execution
