@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\WalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,17 +13,59 @@ use Illuminate\Http\Request;
  */
 class WalletController extends Controller
 {
-    public function createWallet(Request $request): JsonResponse {}
+    private WalletService $WalletService;
 
-    public function getWallet(int $id): JsonResponse {}
+    public function __construct(WalletService $WalletService)
+    {
+        $this->WalletService = $WalletService;
+    }
 
-    public function listWallets(Request $request): JsonResponse {}
+    public function createWallet(Request $request): JsonResponse
+    {
+        $response = $this->WalletService->createWallet($request->all());
 
-    public function depositInWallet(Request $request, int $id): JsonResponse {}
+        return response()->json($response, $response['code']);
+    }
 
-    public function withdrawFormWallet(Request $request, int $id): JsonResponse {}
+    public function getWallet(Request $request): JsonResponse
+    {
+        $response = $this->WalletService->getWallet($request->all());
 
-    public function walletBalance(int $id): JsonResponse {}
+        return response()->json($response, $response['code']);
+    }
 
-    public function walletTransactions(Request $request, int $id): JsonResponse {}
+    public function listWallets(Request $request): JsonResponse
+    {
+        $response = $this->WalletService->listWallets($request->all());
+
+        return response()->json($response, $response['code']);
+    }
+
+    public function depositInWallet(Request $request): JsonResponse
+    {
+        $response = $this->WalletService->depositInWallet($request->all());
+
+        return response()->json($response, $response['code']);
+    }
+
+    public function withdrawFormWallet(Request $request): JsonResponse
+    {
+        $response = $this->WalletService->withdrawFormWallet($request->all());
+
+        return response()->json($response, $response['code']);
+    }
+
+    public function walletBalance(Request $request): JsonResponse
+    {
+        $response = $this->WalletService->walletBalance($request->all());
+
+        return response()->json($response, $response['code']);
+    }
+
+    public function walletTransactions(Request $request): JsonResponse
+    {
+        $response = $this->WalletService->walletTransactions($request->all());
+
+        return response()->json($response, $response['code']);
+    }
 }
