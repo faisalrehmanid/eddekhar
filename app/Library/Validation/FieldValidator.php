@@ -263,6 +263,27 @@ class FieldValidator
         return $this;
     }
 
+    /**
+     * Validate currency code (3-letter uppercase)
+     *
+     * Example:
+     * $Validator->field('currency', $v)->currencyCode('Invalid currency code')
+     */
+    public function currencyCode(
+        string $message = 'Currency must be a 3-letter code (e.g., USD, EUR)',
+        string $code = 'currency_code'
+    ): self {
+        if ($this->Validator->shouldStop($this->field)) {
+            return $this;
+        }
+
+        if (! preg_match('/^[A-Z]{3}$/', $this->value)) {
+            $this->add($code, $message);
+        }
+
+        return $this;
+    }
+
     private function add(string $code, string $message): void
     {
         // Normalize whitespace

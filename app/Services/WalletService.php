@@ -27,7 +27,8 @@ class WalletService
             ->required('Please enter owner name');
 
         $Validator->field('currency', $currency)
-            ->required('Please enter currency');
+            ->required('Please enter currency')
+            ->currencyCode();
 
         $Validator->validate();
 
