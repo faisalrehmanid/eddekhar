@@ -162,11 +162,13 @@ class MySQL extends DbAbstract
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
 
+        // Get lastInsertId before disconnecting
+        $generated_value = $this->pdo->lastInsertId();
+
         if ($disconnect) { // Disconnect database connection after query execution
             $this->disconnect();
         }
 
-        $generated_value = $this->pdo->lastInsertId();
         if ($generated_value == 0) {
             return false;
         }
