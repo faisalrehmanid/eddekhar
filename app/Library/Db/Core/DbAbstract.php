@@ -81,19 +81,6 @@ abstract class DbAbstract implements DbInterface
     }
 
     /**
-     * Disconnect database connection after script execution
-     * Its not guaranteed that __destruct will be called for sure. For example:
-     * __destruct will not be called when script throw \Exception and break script execution
-     *
-     * Don't trust on destructor for disconnect. This is just for extra safety.
-     * Use $disconnect parameter provided in each query function
-     */
-    public function __destruct()
-    {
-        $this->disconnect();
-    }
-
-    /**
      * Set query log directory path where log files will be saved
      *
      * @return void
@@ -268,13 +255,13 @@ abstract class DbAbstract implements DbInterface
      *
      * @param  string  $query  `SELECT` SQL query
      * @param  array  $values  Query parameters
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return array Always return an array
      *
      * @throws \Exception fetchRow() function can only used for `SELECT` query
      */
-    public function fetchRow($query, array $values = [], $disconnect = true, $debug = false)
+    public function fetchRow($query, array $values = [], $disconnect = false, $debug = false)
     {
         $type = $this->queryType($query);
         if ($type !== 'SELECT') { // Check query type must be SELECT query
@@ -323,13 +310,13 @@ abstract class DbAbstract implements DbInterface
      *
      * @param  string  $query  `SELECT` SQL query
      * @param  array  $values  Query parameters
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return array Always return an array
      *
      * @throws \Exception fetchRows() function can only used for `SELECT` query
      */
-    public function fetchRows($query, array $values = [], $disconnect = true, $debug = false)
+    public function fetchRows($query, array $values = [], $disconnect = false, $debug = false)
     {
         $type = $this->queryType($query);
         if ($type !== 'SELECT') { // Check query type must be SELECT query
@@ -378,13 +365,13 @@ abstract class DbAbstract implements DbInterface
      *
      * @param  string  $query  `SELECT` SQL query
      * @param  array  $values  Query parameters
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return array Always return an array
      *
      * @throws \Exception fetchRows() function can only used for `SELECT` query
      */
-    public function fetchColumn($query, array $values = [], $disconnect = true, $debug = false)
+    public function fetchColumn($query, array $values = [], $disconnect = false, $debug = false)
     {
         $data = $this->fetchRows($query, $values, $disconnect, $debug);
 
@@ -407,13 +394,13 @@ abstract class DbAbstract implements DbInterface
      * @param  string  $key  Name of key to get value
      * @param  string  $query  `SELECT` SQL query
      * @param  array  $values  Query parameters
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return string Value string
      *
      * @throws \Exception fetchRow() function can only used for `SELECT` query
      */
-    public function fetchKey($key, $query, array $values = [], $disconnect = true, $debug = false)
+    public function fetchKey($key, $query, array $values = [], $disconnect = false, $debug = false)
     {
         $row = $this->fetchRow($query, $values, $disconnect, $debug);
 
@@ -429,13 +416,13 @@ abstract class DbAbstract implements DbInterface
      *
      * @param  string  $query  `UPDATE` SQL query
      * @param  array  $values  Query parameters
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return int Number of affected rows
      *
      * @throws \Exception update() function can only used for `UPDATE` query
      */
-    public function update($query, array $values = [], $disconnect = true, $debug = false)
+    public function update($query, array $values = [], $disconnect = false, $debug = false)
     {
         $type = $this->queryType($query);
         if ($type !== 'UPDATE') { // Check query type must be UPDATE query
@@ -478,13 +465,13 @@ abstract class DbAbstract implements DbInterface
      *
      * @param  string  $query  `DELETE` SQL query
      * @param  array  $values  Query parameters
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return int Number of affected rows
      *
      * @throws \Exception delete() function can only used for `DELETE` query
      */
-    public function delete($query, array $values = [], $disconnect = true, $debug = false)
+    public function delete($query, array $values = [], $disconnect = false, $debug = false)
     {
         $type = $this->queryType($query);
         if ($type !== 'DELETE') { // Check query type must be DELETE query
@@ -529,7 +516,7 @@ abstract class DbAbstract implements DbInterface
      * @param  string  $query  SQL query
      * @param  array  $values  Query parameters
      * @param  bool  $checkType  Check query type
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return PDOStatement $result
      *
@@ -538,7 +525,7 @@ abstract class DbAbstract implements DbInterface
      * @throws \Exception For `UPDATE` query use \App\Library\Db\Core\DbInterface::update()
      * @throws \Exception For `DELETE` query use \App\Library\Db\Core\DbInterface::delete()
      */
-    public function query($query, array $values = [], $checkType = true, $disconnect = true, $debug = false)
+    public function query($query, array $values = [], $checkType = true, $disconnect = false, $debug = false)
     {
         if ($checkType) {
             $type = $this->queryType($query);
@@ -719,11 +706,13 @@ abstract class DbAbstract implements DbInterface
 
     /**
      * Reconnect if PDO connection was closed
+     * Laravel automatically manages connection pooling and reconnection
      *
      * @return void
      */
     protected function reconnectIfNeeded()
     {
+        // Laravel automatically reconnects if needed
         if ($this->pdo === null) {
             $this->pdo = LaravelDB::connection($this->connection)->getPdo();
         }

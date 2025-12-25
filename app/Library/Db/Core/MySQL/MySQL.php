@@ -87,7 +87,7 @@ class MySQL extends DbAbstract
      *                               When array it must be like:
      *                               ['table' => 'table-name', 'sequence' => 'sequence-name', 'column' => 'column-name']
      * @param  array  $values  Data to be inserted
-     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is true
+     * @param  bool  $disconnect  Disconnect database connection after query execution. Default is false
      * @param  bool  $debug  Don't execute query. Just print it for debugging. Default is false
      * @return int|false Last generated value or false
      *
@@ -96,7 +96,7 @@ class MySQL extends DbAbstract
     public function insert(
         $table,
         array $values,
-        $disconnect = true,
+        $disconnect = false,
         $debug = false
     ) {
         $data = $values;
