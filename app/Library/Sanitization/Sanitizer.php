@@ -96,8 +96,8 @@ class Sanitizer
         return (float) $v;
     }
 
-    // Final sanitized value
-    public function get($default = null): string
+    // Sanitize as string
+    public function string($default = null): string
     {
         $v = (string) $this->value;
 
