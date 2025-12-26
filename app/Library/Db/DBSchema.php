@@ -8,9 +8,9 @@ namespace App\Library\Db;
 class DBSchema
 {
     // List of all tables
-    public const IDEMPOTENCY_KEYS = '`wallet_service`.`idempotency_keys`';
+    public const IDEMPOTENCY_KEYS = '`EDDEKHAR_WALLET_SERVICE`.`IDEMPOTENCY_KEYS`';
 
-    public const TRANSACTIONS = '`wallet_service`.`transactions`';
+    public const TRANSACTIONS = '`EDDEKHAR_WALLET_SERVICE`.`TRANSACTIONS`';
 
-    public const WALLETS = '`wallet_service`.`wallets`';
+    public const WALLETS = '`EDDEKHAR_WALLET_SERVICE`.`WALLETS`';
 }
