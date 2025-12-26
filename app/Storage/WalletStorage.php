@@ -19,9 +19,11 @@ class WalletStorage
         $exp = $this->DB->getExpression();
 
         $data = [];
-        $data['OWNER_NAME'] = $owner_name;
-        $data['CURRENCY'] = $currency;
-        $data['BALANCE'] = 0;
+        $data['WALLET_OWNER_NAME'] = $owner_name;
+        $data['WALLET_CURRENCY'] = $currency;
+        $data['WALLET_BALANCE'] = 0;
+        $data['WALLET_CREATED_AT'] = $exp->setDate(date('Y-m-d H:i:s'));
+        $data['WALLET_UPDATED_AT'] = $exp->setDate(date('Y-m-d H:i:s'));
         $wallet_id = $this->DB->insert(DBSchema::WALLETS, $data);
 
         return $wallet_id;
