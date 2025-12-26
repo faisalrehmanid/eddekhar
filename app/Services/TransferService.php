@@ -143,7 +143,7 @@ class TransferService
         }
 
         // Check if both wallets have the same currency
-        if ($from_wallet['wallet_currency'] !== $to_wallet['wallet_currency']) {
+        if (strtolower($from_wallet['wallet_currency']) !== strtolower($to_wallet['wallet_currency'])) {
             $response_code = 400;
             $response_body = ['error' => 'Cannot transfer between different currencies'];
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
