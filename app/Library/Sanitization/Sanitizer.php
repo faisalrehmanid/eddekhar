@@ -62,6 +62,40 @@ class Sanitizer
         return $this;
     }
 
+    // Sanitize as numeric digits (only numeric digits, no decimal points or chars)
+    public function digits($default = null): ?int
+    {
+        $v = (string) $this->value;
+
+        if ($this->applyTrim) {
+            $v = trim($v);
+        }
+
+        // Check if all characters are digits using ctype_digit
+        if ($v === '' || ! ctype_digit($v)) {
+            return $default;
+        }
+
+        return (int) $v;
+    }
+
+    // Sanitize as float (numeric with optional decimal point)
+    public function float($default = null): ?float
+    {
+        $v = (string) $this->value;
+
+        if ($this->applyTrim) {
+            $v = trim($v);
+        }
+
+        // Check if the value is numeric and contains at least one dot
+        if ($v === '' || ! is_numeric($v) || strpos($v, '.') === false) {
+            return $default;
+        }
+
+        return (float) $v;
+    }
+
     // Final sanitized value
     public function get($default = null): string
     {
