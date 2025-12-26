@@ -11,7 +11,7 @@ use PDOStatement;
  * These functions are common in all type of databases. Each specific
  * database type will must extend this class.
  *
- * This class uses Laravel's database connection and PDO
+ * This class uses Laravel's database connection for all database operations
  *
  * Why abstract class?
  * Don't allow to create an object of this class instead it can be
@@ -25,11 +25,6 @@ abstract class DbAbstract implements DbInterface
      * @var array
      */
     protected $config = [];
-
-    /**
-     * @var PDO
-     */
-    protected $pdo;
 
     /**
      * @var string Connection name
@@ -71,12 +66,11 @@ abstract class DbAbstract implements DbInterface
         $this->config = $config;
         $this->connection = $config['connection'] ?? config('database.default');
 
-        // Get PDO instance from Laravel
-        $this->pdo = LaravelDB::connection($this->connection)->getPdo();
-
         // Test connection
-        if (! $this->pdo) {
-            throw new \Exception('Failed to establish database connection');
+        try {
+            LaravelDB::connection($this->connection)->getPdo();
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to establish database connection: '.$e->getMessage());
         }
     }
 
@@ -176,7 +170,7 @@ abstract class DbAbstract implements DbInterface
      */
     public function getDbPlatformName()
     {
-        return strtolower($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+        return strtolower(LaravelDB::connection($this->connection)->getDriverName());
     }
 
     /**
@@ -188,7 +182,6 @@ abstract class DbAbstract implements DbInterface
     {
         // Laravel manages connections, but we can purge them
         LaravelDB::disconnect($this->connection);
-        $this->pdo = null;
     }
 
     /**
@@ -282,9 +275,9 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($values);
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $data = LaravelDB::connection($this->connection)->select($query, $values);
+        // Convert stdClass objects to arrays
+        $data = json_decode(json_encode($data), true);
 
         if ($startTime !== null) {
             $endTime = microtime(true);
@@ -336,9 +329,9 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($values);
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $data = LaravelDB::connection($this->connection)->select($query, $values);
+        // Convert stdClass objects to arrays
+        $data = json_decode(json_encode($data), true);
 
         if ($startTime !== null) {
             $endTime = microtime(true);
@@ -441,9 +434,7 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($values);
-        $affectedRows = $stmt->rowCount();
+        $affectedRows = LaravelDB::connection($this->connection)->update($query, $values);
 
         if ($startTime !== null) {
             $endTime = microtime(true);
@@ -489,9 +480,7 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($values);
-        $affectedRows = $stmt->rowCount();
+        $affectedRows = LaravelDB::connection($this->connection)->delete($query, $values);
 
         if ($startTime !== null) {
             $endTime = microtime(true);
@@ -554,8 +543,7 @@ abstract class DbAbstract implements DbInterface
             $startTime = microtime(true);
         }
 
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($values);
+        $result = LaravelDB::connection($this->connection)->statement($query, $values);
 
         if ($startTime !== null) {
             $endTime = microtime(true);
@@ -566,7 +554,7 @@ abstract class DbAbstract implements DbInterface
             $this->disconnect();
         }
 
-        return $stmt;
+        return $result;
     }
 
     /**
@@ -696,7 +684,7 @@ abstract class DbAbstract implements DbInterface
      */
     protected function getPdo()
     {
-        return $this->pdo;
+        return LaravelDB::connection($this->connection)->getPdo();
     }
 
     /**
@@ -742,7 +730,8 @@ abstract class DbAbstract implements DbInterface
             if (is_int($values[$key])) {
                 $value = $values[$key];
             } else {
-                $value = $this->pdo->quote($values[$key]);
+                $pdo = LaravelDB::connection($this->connection)->getPdo();
+                $value = $pdo->quote($values[$key]);
             }
 
             $query = str_replace($key, $value, $query);

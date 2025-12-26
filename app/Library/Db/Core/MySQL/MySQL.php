@@ -158,11 +158,10 @@ class MySQL extends DbAbstract
             $this->debug($query, $values);
         }
 
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($values);
+        $affectedRows = \Illuminate\Support\Facades\DB::connection($this->connection)->insert($query, $values);
 
         // Get lastInsertId before disconnecting
-        $generated_value = $this->pdo->lastInsertId();
+        $generated_value = \Illuminate\Support\Facades\DB::connection($this->connection)->getPdo()->lastInsertId();
 
         if ($disconnect) { // Disconnect database connection after query execution
             $this->disconnect();
@@ -184,7 +183,7 @@ class MySQL extends DbAbstract
      */
     public function importSQL($query, $disconnect = true)
     {
-        $this->pdo->exec($query);
+        \Illuminate\Support\Facades\DB::connection($this->connection)->statement($query);
 
         if ($disconnect) { // Disconnect database connection after query execution
             $this->disconnect();
