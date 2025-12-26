@@ -2,6 +2,7 @@
 
 namespace App\Storage;
 
+use App\Exceptions\ApiException;
 use App\Library\Db\DB;
 use App\Library\Db\DBSchema;
 
@@ -52,8 +53,9 @@ class IdempotencyKeyStorage
         ];
         $row = $this->DB->fetchRow($query, $values);
 
+        // If key exists but with different request body, throw error
         if (! empty($row) && $request_hash !== $row['request_hash']) {
-            return [];
+            throw new ApiException(409, 'Idempotency key reused with different request body');
         }
 
         return $row;

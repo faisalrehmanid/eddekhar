@@ -99,19 +99,11 @@ class WalletService
             throw new ApiException(404, 'Wallet not found');
         }
 
-        $idempotency_endpoint = 'deposit:'.$wallet_id;
-        $idempotency = $this->IdempotencyKeyStorage->checkIdempotencyKey(
-            $idempotency_key,
-            $idempotency_endpoint,
-            $request
-        );
-
         // Validate
         $Validator = V::create();
 
         $Validator->field('idempotency_key', $idempotency_key)
-            ->required('Idempotency-Key header is required')
-            ->isNotEmpty($idempotency, 'Idempotency key reused with different request body');
+            ->required('Idempotency-Key header is required');
 
         $Validator->field('transaction_amount', $transaction_amount)
             ->required('Please enter transaction amount')
@@ -123,6 +115,22 @@ class WalletService
             ->maxLength(300);
 
         $Validator->validate();
+
+        // Check idempotency key after basic validation
+        $idempotency_endpoint = 'deposit:'.$wallet_id;
+        $idempotency = $this->IdempotencyKeyStorage->checkIdempotencyKey(
+            $idempotency_key,
+            $idempotency_endpoint,
+            $request
+        );
+
+        // If idempotency key exists with same request, return cached response
+        if (! empty($idempotency)) {
+            $response_body = json_decode($idempotency['response_body'], true);
+            $response_code = $idempotency['response_code'];
+
+            return $this->ServiceUtil->success($response_body, $response_code);
+        }
 
         $this->WalletStorage->updateBalance($wallet_id, $transaction_amount);
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
