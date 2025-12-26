@@ -12,8 +12,10 @@ class WalletStorage
 
     private PaginationUtil $PaginationUtil;
 
-    public function __construct(DB $DB, PaginationUtil $PaginationUtil)
-    {
+    public function __construct(
+        DB $DB,
+        PaginationUtil $PaginationUtil
+    ) {
         $this->DB = $DB;
         $this->PaginationUtil = $PaginationUtil;
     }
@@ -142,5 +144,42 @@ class WalletStorage
         $wallet_id = $this->DB->insert(DBSchema::WALLETS, $data);
 
         return $wallet_id;
+    }
+
+    public function updateBalance($wallet_id, $amount)
+    {
+        // Use FOR UPDATE to lock the row
+        $query = ' SELECT
+                        WALLET_BALANCE
+                    FROM '.DBSchema::WALLETS.'
+                    WHERE WALLET_ID = :WALLET_ID FOR UPDATE';
+        $values = [':WALLET_ID' => $wallet_id];
+        $wallet = $this->DB->fetchRow($query, $values);
+
+        if (empty($wallet)) {
+            throw new \Exception('Wallet not found');
+        }
+
+        $new_balance = $wallet['wallet_balance'] + $amount;
+
+        if ($new_balance < 0) {
+            throw new \Exception('Insufficient funds');
+        }
+
+        $exp = $this->DB->getExpression();
+        $date = $exp->setDate(date('Y-m-d H:i:s'));
+
+        $query = ' UPDATE '.DBSchema::WALLETS.' SET
+                        WALLET_BALANCE = :WALLET_BALANCE,
+                        WALLET_UPDATED_AT = '.$date->getFragment().'
+                    WHERE WALLET_ID = :WALLET_ID ';
+        $values = [
+            ':WALLET_ID' => $wallet_id,
+            ':WALLET_BALANCE' => $new_balance,
+        ];
+        $values = array_merge($values, $date->getValues());
+        $this->DB->update($query, $values);
+
+        return true;
     }
 }
