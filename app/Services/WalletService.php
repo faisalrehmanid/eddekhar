@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ApiException;
 use App\Library\Sanitization\Sanitizer as S;
 use App\Library\Validation\Validator as V;
 use App\Storage\WalletStorage;
@@ -23,32 +24,46 @@ class WalletService
     public function createWallet(array $request)
     {
         // Sanitize
-        @$owner_name = S::value($request['owner_name'])->get();
-        @$currency = S::value($request['currency'])->get();
+        @$wallet_owner_name = S::value($request['wallet_owner_name'])->get();
+        @$wallet_currency = S::value($request['wallet_currency'])->get();
 
         // Validate
         $Validator = V::create();
 
-        $Validator->field('owner_name', $owner_name)
+        $Validator->field('wallet_owner_name', $wallet_owner_name)
             ->required('Please enter owner name');
 
-        $Validator->field('currency', $currency)
-            ->required('Please enter currency')
+        $Validator->field('wallet_currency', $wallet_currency)
+            ->required('Please enter wallet_currency')
             ->currencyCode();
 
         $Validator->validate();
 
         // Insert in db
-        $wallet_id = $this->WalletStorage->insertWallet($owner_name, $currency);
+        $wallet_id = $this->WalletStorage->insertWallet($wallet_owner_name, $wallet_currency);
 
-        $response = [
+        $data = [
             'wallet_id' => $wallet_id,
         ];
 
-        return $this->ServiceUtil->success($response);
+        return $this->ServiceUtil->success($data);
     }
 
-    public function getWallet(array $request) {}
+    public function getWallet($wallet_id)
+    {
+        // Sanitize
+        @$wallet_id = S::value($wallet_id)->digits();
+
+        $wallet = $this->WalletStorage->getWalletById($wallet_id);
+
+        if (empty($wallet)) {
+            throw new ApiException(404, 'Wallet not found');
+        }
+
+        $data = $wallet;
+
+        return $this->ServiceUtil->success($data);
+    }
 
     public function listWallets(array $request) {}
 
