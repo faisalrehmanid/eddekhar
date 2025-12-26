@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\ApiException;
 use App\Library\Sanitization\Sanitizer as S;
 use App\Library\Validation\Validator as V;
+use App\Storage\IdempotencyKeyStorage;
 use App\Storage\TransactionStorage;
 use App\Storage\WalletStorage;
 
@@ -16,14 +17,18 @@ class WalletService
 
     private TransactionStorage $TransactionStorage;
 
+    private IdempotencyKeyStorage $IdempotencyKeyStorage;
+
     public function __construct(
         ServiceUtil $ServiceUtil,
         WalletStorage $WalletStorage,
-        TransactionStorage $TransactionStorage
+        TransactionStorage $TransactionStorage,
+        IdempotencyKeyStorage $IdempotencyKeyStorage
     ) {
         $this->ServiceUtil = $ServiceUtil;
         $this->WalletStorage = $WalletStorage;
         $this->TransactionStorage = $TransactionStorage;
+        $this->IdempotencyKeyStorage = $IdempotencyKeyStorage;
     }
 
     public function createWallet(array $request)
@@ -83,7 +88,7 @@ class WalletService
         @$wallet_id = S::value($wallet_id)->digits();
         @$transaction_amount = S::value($request['transaction_amount'])->string();
         @$transaction_description = S::value($request['transaction_description'])->string();
-        $idempotencyKey = '1234-8765';
+        $idempotency_key = '1234-8765';
 
         // Validate wallet details
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
@@ -115,17 +120,26 @@ class WalletService
             $transaction_amount,
             $wallet['wallet_balance'],
             null,
-            $idempotencyKey,
+            $idempotency_key,
             $transaction_description
         );
 
-        $data = [
+        $response_code = 200;
+        $response_body = [
             'wallet_id' => $wallet['wallet_id'],
             'wallet_balance' => $wallet['wallet_balance'],
             'transaction_amount' => $transaction_amount,
         ];
 
-        return $this->ServiceUtil->success($data);
+        $this->IdempotencyKeyStorage->insertIdempotencyKey(
+            $idempotency_key,
+            'deposit:'.$wallet_id,
+            $request,
+            $response_code,
+            $response_body,
+        );
+
+        return $this->ServiceUtil->success($response_body, $response_code);
     }
 
     public function withdrawFormWallet(array $request) {}
