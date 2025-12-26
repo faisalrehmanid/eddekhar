@@ -284,6 +284,50 @@ class FieldValidator
         return $this;
     }
 
+    /**
+     * Check value contains only numeric digits
+     *
+     * Example:
+     * $Validator->field('field_name', $v)->digits('Please enter only numeric digits')
+     */
+    public function digits(
+        string $message = 'Please enter only numeric digits',
+        string $code = 'digits'
+    ): self {
+        if ($this->Validator->shouldStop($this->field)) {
+            return $this;
+        }
+
+        $value = (string) $this->value;
+
+        if ($value === '' || ! ctype_digit($value)) {
+            $this->add($code, $message);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Check value must be greater than zero
+     *
+     * Example:
+     * $Validator->field('field_name', $v)->greaterThanZero('Value must be greater than 0')
+     */
+    public function greaterThanZero(
+        string $message = 'Value must be greater than 0',
+        string $code = 'greater_than_zero'
+    ): self {
+        if ($this->Validator->shouldStop($this->field)) {
+            return $this;
+        }
+
+        if (! is_numeric($this->value) || $this->value <= 0) {
+            $this->add($code, $message);
+        }
+
+        return $this;
+    }
+
     private function add(string $code, string $message): void
     {
         // Normalize whitespace
