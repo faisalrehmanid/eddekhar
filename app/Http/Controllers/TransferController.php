@@ -22,7 +22,8 @@ class TransferController extends Controller
 
     public function createTransfer(Request $request): JsonResponse
     {
-        $response = $this->TransferService->createTransfer($request->all());
+        $idempotency_key = request()->header('Idempotency-Key');
+        $response = $this->TransferService->createTransfer($idempotency_key, $request->all());
 
         return response()->json($response, $response['code']);
     }
