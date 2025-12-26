@@ -27,7 +27,7 @@ class WalletController extends Controller
         return response()->json($response, $response['code']);
     }
 
-    public function getWallet(Request $request, $id): JsonResponse
+    public function getWallet($id, Request $request): JsonResponse
     {
         $response = $this->WalletService->getWallet($id);
 
@@ -41,9 +41,9 @@ class WalletController extends Controller
         return response()->json($response, $response['code']);
     }
 
-    public function depositInWallet(Request $request): JsonResponse
+    public function depositInWallet($id, Request $request): JsonResponse
     {
-        $response = $this->WalletService->depositInWallet($request->all());
+        $response = $this->WalletService->depositInWallet($id, $request->all());
 
         return response()->json($response, $response['code']);
     }
