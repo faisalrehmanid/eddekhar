@@ -82,13 +82,15 @@ class WalletService
         return $this->ServiceUtil->success($data);
     }
 
-    public function depositInWallet($wallet_id, array $request)
-    {
+    public function depositInWallet(
+        $wallet_id,
+        $idempotency_key,
+        array $request
+    ) {
         // Sanitize
         @$wallet_id = S::value($wallet_id)->digits();
         @$transaction_amount = S::value($request['transaction_amount'])->string();
         @$transaction_description = S::value($request['transaction_description'])->string();
-        $idempotency_key = '1234-8765';
 
         // Validate wallet details
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
@@ -97,8 +99,19 @@ class WalletService
             throw new ApiException(404, 'Wallet not found');
         }
 
+        $idempotency_endpoint = 'deposit:'.$wallet_id;
+        $idempotency = $this->IdempotencyKeyStorage->checkIdempotencyKey(
+            $idempotency_key,
+            $idempotency_endpoint,
+            $request
+        );
+
         // Validate
         $Validator = V::create();
+
+        $Validator->field('idempotency_key', $idempotency_key)
+            ->required('Idempotency-Key header is required')
+            ->isNotEmpty($idempotency, 'Idempotency key reused with different request body');
 
         $Validator->field('transaction_amount', $transaction_amount)
             ->required('Please enter transaction amount')
@@ -133,7 +146,7 @@ class WalletService
 
         $this->IdempotencyKeyStorage->insertIdempotencyKey(
             $idempotency_key,
-            'deposit:'.$wallet_id,
+            $idempotency_endpoint,
             $request,
             $response_code,
             $response_body,

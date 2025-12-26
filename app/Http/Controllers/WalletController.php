@@ -43,7 +43,8 @@ class WalletController extends Controller
 
     public function depositInWallet($id, Request $request): JsonResponse
     {
-        $response = $this->WalletService->depositInWallet($id, $request->all());
+        $idempotency_key = request()->header('Idempotency-Key');
+        $response = $this->WalletService->depositInWallet($id, $idempotency_key, $request->all());
 
         return response()->json($response, $response['code']);
     }
