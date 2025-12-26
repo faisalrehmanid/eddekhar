@@ -65,7 +65,12 @@ class WalletService
         return $this->ServiceUtil->success($data);
     }
 
-    public function listWallets(array $request) {}
+    public function listWallets(array $request)
+    {
+        $data = $this->WalletStorage->listWallets($request);
+
+        return $this->ServiceUtil->success($data);
+    }
 
     public function depositInWallet(array $request) {}
 
