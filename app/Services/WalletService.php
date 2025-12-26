@@ -161,7 +161,7 @@ class WalletService
         DB::beginTransaction();
 
         try {
-            $this->WalletStorage->updateBalance($wallet_id, $transaction_amount);
+            $this->WalletStorage->updateBalance($wallet_id, $transaction_amount, 'plus');
             $wallet = $this->WalletStorage->getWalletById($wallet_id);
 
             $this->TransactionStorage->insertTransaction(
