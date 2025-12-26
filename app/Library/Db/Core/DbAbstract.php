@@ -69,7 +69,8 @@ abstract class DbAbstract implements DbInterface
         // Test connection and set fetch mode
         try {
             // Set fetch mode to return associative arrays instead of stdClass objects
-            LaravelDB::connection($this->connection)->setFetchMode(PDO::FETCH_ASSOC);
+            $pdo = LaravelDB::connection($this->connection)->getPdo();
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             throw new \Exception('Failed to establish database connection: '.$e->getMessage());
         }
