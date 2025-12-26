@@ -66,9 +66,10 @@ abstract class DbAbstract implements DbInterface
         $this->config = $config;
         $this->connection = $config['connection'] ?? config('database.default');
 
-        // Test connection
+        // Test connection and set fetch mode
         try {
-            LaravelDB::connection($this->connection)->getPdo();
+            // Set fetch mode to return associative arrays instead of stdClass objects
+            LaravelDB::connection($this->connection)->setFetchMode(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             throw new \Exception('Failed to establish database connection: '.$e->getMessage());
         }
@@ -276,8 +277,6 @@ abstract class DbAbstract implements DbInterface
         }
 
         $data = LaravelDB::connection($this->connection)->select($query, $values);
-        // Convert stdClass objects to arrays
-        $data = json_decode(json_encode($data), true);
 
         if ($startTime !== null) {
             $endTime = microtime(true);
@@ -330,8 +329,6 @@ abstract class DbAbstract implements DbInterface
         }
 
         $data = LaravelDB::connection($this->connection)->select($query, $values);
-        // Convert stdClass objects to arrays
-        $data = json_decode(json_encode($data), true);
 
         if ($startTime !== null) {
             $endTime = microtime(true);
