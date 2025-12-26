@@ -41,7 +41,7 @@ Route::prefix('wallets')->group(function () {
     Route::get('/{id}/balance', [WalletController::class, 'walletBalance']);
 
     // Get transaction history
-    Route::get('/{id}/transactions', [WalletController::class, 'walletTransactions']);
+    Route::get('/{id}/transactions', [WalletController::class, 'listWalletTransactions']);
 });
 
 // Transfer routes
