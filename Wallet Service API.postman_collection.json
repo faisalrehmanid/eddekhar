@@ -1,0 +1,417 @@
+{
+	"info": {
+		"_postman_id": "a922939d-c507-48de-9a0b-484c3c0a3947",
+		"name": "Wallet Service API",
+		"description": "Complete REST API for Wallet Service with deposits, withdrawals, and transfers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1803294"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Check if the API is running"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Wallet",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"wallet_owner_name\": \"Faisal\",\n    \"wallet_currency\": \"PKR\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/wallets",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets"
+					]
+				},
+				"description": "Create a new wallet with owner name and currency"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Wallet Details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/wallets/50",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"50"
+					]
+				},
+				"description": "Retrieve wallet information including balance"
+			},
+			"response": []
+		},
+		{
+			"name": "List All Wallets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/wallets?page_number=1&records_per_page=10&filter_logic=&exact_match=&order_by=&wallet_owner_name=&wallet_currency=",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets"
+					],
+					"query": [
+						{
+							"key": "page_number",
+							"value": "1",
+							"description": "Page number if empty or invalid default will be 1"
+						},
+						{
+							"key": "records_per_page",
+							"value": "10",
+							"description": "Check response. Given value must be from records_per_page_options "
+						},
+						{
+							"key": "filter_logic",
+							"value": "",
+							"description": "Value can be AND, OR if empty default is AND"
+						},
+						{
+							"key": "exact_match",
+							"value": "",
+							"description": "Value can be 0 or 1, Default is 0"
+						},
+						{
+							"key": "order_by",
+							"value": "",
+							"description": "Check response. Given value must be from order_by_options"
+						},
+						{
+							"key": "wallet_owner_name",
+							"value": ""
+						},
+						{
+							"key": "wallet_currency",
+							"value": ""
+						}
+					]
+				},
+				"description": "List all wallets"
+			},
+			"response": []
+		},
+		{
+			"name": "Deposit Funds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}",
+						"description": "Unique key to prevent duplicate deposits"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_amount\": \"30\",\n    \"transaction_description\": \"Initial deposit\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/wallets/41/deposit",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"41",
+						"deposit"
+					]
+				},
+				"description": "Deposit funds to a wallet. Amount is in minor units (e.g., 10000 = $100.00)"
+			},
+			"response": []
+		},
+		{
+			"name": "Withdraw Funds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}",
+						"description": "Unique key to prevent duplicate withdrawals"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_amount\": \"10000\",\n    \"transaction_description\": \"ATM withdrawal\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/wallets/41/withdraw",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"41",
+						"withdraw"
+					]
+				},
+				"description": "Withdraw funds from a wallet. Returns error if insufficient funds."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Wallet Balance",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/wallets/41/balance",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"41",
+						"balance"
+					]
+				},
+				"description": "Get current wallet balance"
+			},
+			"response": []
+		},
+		{
+			"name": "List All Wallet Transaction",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/wallets/41/transactions?page_number=1&records_per_page=10&filter_logic=&exact_match=&order_by=created_at_asc&transaction_type=&start_date=2025-12-25&end_date=2025-12-26",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"41",
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "page_number",
+							"value": "1",
+							"description": "Page number if empty or invalid default will be 1"
+						},
+						{
+							"key": "records_per_page",
+							"value": "10",
+							"description": "Check response. Given value must be from records_per_page_options "
+						},
+						{
+							"key": "filter_logic",
+							"value": "",
+							"description": "Value can be AND, OR if empty default is AND"
+						},
+						{
+							"key": "exact_match",
+							"value": "",
+							"description": "Value can be 0 or 1, Default is 0"
+						},
+						{
+							"key": "order_by",
+							"value": "created_at_asc",
+							"description": "Check response. Given value must be from order_by_options"
+						},
+						{
+							"key": "transaction_type",
+							"value": ""
+						},
+						{
+							"key": "start_date",
+							"value": "2025-12-25"
+						},
+						{
+							"key": "end_date",
+							"value": "2025-12-26"
+						}
+					]
+				},
+				"description": "List all wallets"
+			},
+			"response": []
+		},
+		{
+			"name": "Transfer Funds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}",
+						"description": "Unique key to prevent duplicate transfers"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"from_wallet_id\": 42,\n    \"to_wallet_id\": 41,\n    \"transaction_amount\": 5000,\n    \"transaction_description\": \"Payment for services\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/transfers",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"transfers"
+					]
+				},
+				"description": "Transfer funds between two wallets atomically. Both wallets must have same currency."
+			},
+			"response": []
+		},
+		{
+			"name": "Test Idempotency - Duplicate Deposit",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "test-idempotency-123",
+						"description": "Use same key to test idempotency"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_amount\": 5000,\n    \"transaction_description\": \"Test duplicate deposit\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/wallets/41/deposit",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"41",
+						"deposit"
+					]
+				},
+				"description": "Send this request twice with the same Idempotency-Key to verify no duplicate transaction"
+			},
+			"response": []
+		},
+		{
+			"name": "Test Insufficient Funds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_amount\": 999999999,\n    \"transaction_description\": \"Attempt to withdraw more than balance\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/wallets/41/withdraw",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"41",
+						"withdraw"
+					]
+				},
+				"description": "Test insufficient funds error"
+			},
+			"response": []
+		},
+		{
+			"name": "Test Self-Transfer Error",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"from_wallet_id\": 1,\n    \"to_wallet_id\": 1,\n    \"transaction_amount\": 5000,\n    \"transaction_description\": \"Payment for services\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/transfers",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"transfers"
+					]
+				},
+				"description": "Test self-transfer validation"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/projects/eddekhar",
+			"type": "string"
+		}
+	]
+}
