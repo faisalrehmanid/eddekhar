@@ -25,7 +25,7 @@ class IdempotencyKeyStorage
         array $request
     ) {
         // Clean up expired keys first
-        // $this->cleanupExpiredIdempotencyKeys();
+        $this->cleanupExpiredIdempotencyKeys();
 
         // Calculate request hash
         $request_hash = $this->requestHash($request);
@@ -88,5 +88,17 @@ class IdempotencyKeyStorage
     private function requestHash(array $data): string
     {
         return hash('sha256', json_encode($data));
+    }
+
+    private function cleanupExpiredIdempotencyKeys()
+    {
+        $exp = $this->DB->getExpression();
+
+        $query = ' DELETE FROM '.DBSchema::IDEMPOTENCY_KEYS.'
+                    WHERE '.$exp->getDate('IDEMPOTENCY_KEY_EXPIRED_AT').' < :CURRENT_DATE ';
+        $values = [
+            ':CURRENT_DATE' => date('Y-m-d H:i:s'),
+        ];
+        $this->DB->delete($query, $values);
     }
 }
