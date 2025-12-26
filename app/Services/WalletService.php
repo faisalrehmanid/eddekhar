@@ -200,7 +200,136 @@ class WalletService
         }
     }
 
-    public function withdrawFormWallet(array $request) {}
+    public function withdrawFormWallet(
+        $wallet_id,
+        $idempotency_key,
+        array $request
+    ) {
+        // Sanitize
+        @$wallet_id = S::value($wallet_id)->digits();
+        @$transaction_amount = S::value($request['transaction_amount'])->string();
+        @$transaction_description = S::value($request['transaction_description'])->string();
+
+        if (empty($idempotency_key)) {
+            throw new ApiException(400, 'Idempotency-Key header is required');
+        }
+
+        // Check idempotency key first
+        $idempotency_endpoint = 'withdraw:'.$wallet_id;
+        $cached = $this->IdempotencyKeyStorage->checkIdempotencyKey(
+            $idempotency_key,
+            $idempotency_endpoint,
+            $request
+        );
+
+        // If idempotency key exists with same request, return cached response
+        if (! empty($cached)) {
+            $response_body = json_decode($cached['response_body'], true);
+            $response_code = $cached['response_code'];
+
+            return $this->ServiceUtil->success($response_body, $response_code);
+        }
+
+        // Validate
+        $Validator = V::create();
+
+        $Validator->field('transaction_amount', $transaction_amount)
+            ->required('Please enter transaction amount')
+            ->digits('Please enter only numeric digits')
+            ->greaterThanZero('Amount must be greater than 0');
+
+        $Validator->field('transaction_description', $transaction_description)
+            ->required('Please enter transaction description')
+            ->maxLength(300);
+
+        try {
+            $Validator->validate();
+        } catch (ApiException $e) {
+            // Store idempotency for validation errors
+            $response_code = $e->getCode();
+            $response_body = $e->toArray();
+            $this->IdempotencyKeyStorage->insertIdempotencyKey(
+                $idempotency_key,
+                $idempotency_endpoint,
+                $request,
+                $response_code,
+                $response_body
+            );
+            throw $e;
+        }
+
+        // Check if wallet exists
+        $wallet = $this->WalletStorage->getWalletById($wallet_id);
+
+        if (empty($wallet)) {
+            $response_code = 404;
+            $response_body = ['error' => 'Wallet not found'];
+            $this->IdempotencyKeyStorage->insertIdempotencyKey(
+                $idempotency_key,
+                $idempotency_endpoint,
+                $request,
+                $response_code,
+                $response_body
+            );
+            throw new ApiException($response_code, 'Wallet not found');
+        }
+
+        // Check if sufficient balance
+        if ($wallet['wallet_balance'] < $transaction_amount) {
+            $response_code = 400;
+            $response_body = ['error' => 'Insufficient balance'];
+            $this->IdempotencyKeyStorage->insertIdempotencyKey(
+                $idempotency_key,
+                $idempotency_endpoint,
+                $request,
+                $response_code,
+                $response_body
+            );
+            throw new ApiException($response_code, 'Insufficient balance');
+        }
+
+        // Perform withdrawal in transaction
+        DB::beginTransaction();
+
+        try {
+            $this->WalletStorage->updateBalance($wallet_id, $transaction_amount, 'minus');
+            $wallet = $this->WalletStorage->getWalletById($wallet_id);
+
+            $this->TransactionStorage->insertTransaction(
+                $wallet_id,
+                'withdraw',
+                $transaction_amount,
+                $wallet['wallet_balance'],
+                null,
+                $idempotency_key,
+                $transaction_description
+            );
+
+            DB::commit();
+
+            $response_code = 200;
+            $response_body = [
+                'wallet_id' => $wallet['wallet_id'],
+                'wallet_balance' => $wallet['wallet_balance'],
+                'transaction_amount' => $transaction_amount,
+            ];
+
+            $response_body = $this->ServiceUtil->success($response_body, $response_code);
+
+            $this->IdempotencyKeyStorage->insertIdempotencyKey(
+                $idempotency_key,
+                $idempotency_endpoint,
+                $request,
+                $response_code,
+                $response_body
+            );
+
+            return $response_body;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 
     public function walletBalance(array $request) {}
 

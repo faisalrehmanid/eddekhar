@@ -146,8 +146,12 @@ class WalletStorage
         return $wallet_id;
     }
 
-    public function updateBalance($wallet_id, $amount)
+    public function updateBalance($wallet_id, $amount, $operation = 'plus')
     {
+        if (! in_array($operation, ['plus', 'minus'])) {
+            throw new \Exception('Invalid operation');
+        }
+
         // Use FOR UPDATE to lock the row
         $query = ' SELECT
                         WALLET_BALANCE
@@ -160,7 +164,13 @@ class WalletStorage
             throw new \Exception('Wallet not found');
         }
 
-        $new_balance = $wallet['wallet_balance'] + $amount;
+        if ($operation == 'plus') {
+            $new_balance = (int) $wallet['wallet_balance'] + (int) $amount;
+        }
+
+        if ($operation == 'minus') {
+            $new_balance = (int) $wallet['wallet_balance'] - (int) $amount;
+        }
 
         if ($new_balance < 0) {
             throw new \Exception('Insufficient funds');

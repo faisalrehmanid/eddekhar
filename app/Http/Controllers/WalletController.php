@@ -49,9 +49,10 @@ class WalletController extends Controller
         return response()->json($response, $response['code']);
     }
 
-    public function withdrawFormWallet(Request $request): JsonResponse
+    public function withdrawFormWallet($id, Request $request): JsonResponse
     {
-        $response = $this->WalletService->withdrawFormWallet($request->all());
+        $idempotency_key = request()->header('Idempotency-Key');
+        $response = $this->WalletService->withdrawFormWallet($id, $idempotency_key, $request->all());
 
         return response()->json($response, $response['code']);
     }
