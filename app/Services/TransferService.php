@@ -142,6 +142,20 @@ class TransferService
             throw new ApiException($response_code, 'Target wallet not found');
         }
 
+        // Check if both wallets have the same currency
+        if ($from_wallet['wallet_currency'] !== $to_wallet['wallet_currency']) {
+            $response_code = 400;
+            $response_body = ['error' => 'Cannot transfer between different currencies'];
+            $this->IdempotencyKeyStorage->insertIdempotencyKey(
+                $idempotency_key,
+                $idempotency_endpoint,
+                $request,
+                $response_code,
+                $response_body
+            );
+            throw new ApiException($response_code, 'Cannot transfer between different currencies');
+        }
+
         // Check if sufficient balance in source wallet
         if ($from_wallet['wallet_balance'] < $transaction_amount) {
             $response_code = 400;
