@@ -31,8 +31,8 @@ class TransactionStorage
         extract($pagination);
 
         $transaction_type = trim($params['transaction_type'] ?? '');
-        $to_date = trim($params['to_date'] ?? '');
-        $from_date = trim($params['from_date'] ?? '');
+        $start_date = trim($params['start_date'] ?? '');
+        $end_date = trim($params['end_date'] ?? '');
 
         $exp = $this->DB->getExpression();
 
@@ -55,6 +55,17 @@ class TransactionStorage
                     'value' => $transaction_type,
                     'transform' => 'lower',
                 ],
+                [
+                    'field' => $exp->getDate('A.TRANSACTION_CREATED_AT', false),
+                    'operator' => '>=',
+                    'value' => $start_date,
+                ],
+                [
+                    'field' => $exp->getDate('A.TRANSACTION_CREATED_AT', false),
+                    'operator' => '<=',
+                    'value' => $end_date,
+                ],
+
             ],
         ];
         $where_clause = $this->DB->buildWhereClause($filters);
