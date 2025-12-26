@@ -331,7 +331,21 @@ class WalletService
         }
     }
 
-    public function walletBalance(array $request) {}
+    public function walletBalance($wallet_id)
+    {
+        // Sanitize
+        @$wallet_id = S::value($wallet_id)->digits();
+
+        $wallet = $this->WalletStorage->getWalletById($wallet_id);
+
+        if (empty($wallet)) {
+            throw new ApiException(404, 'Wallet not found');
+        }
+
+        $data = ['wallet_balance' => $wallet['wallet_balance']];
+
+        return $this->ServiceUtil->success($data);
+    }
 
     public function walletTransactions(array $request) {}
 }

@@ -57,9 +57,9 @@ class WalletController extends Controller
         return response()->json($response, $response['code']);
     }
 
-    public function walletBalance(Request $request): JsonResponse
+    public function walletBalance($id): JsonResponse
     {
-        $response = $this->WalletService->walletBalance($request->all());
+        $response = $this->WalletService->walletBalance($id);
 
         return response()->json($response, $response['code']);
     }
