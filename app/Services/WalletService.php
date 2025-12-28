@@ -124,14 +124,12 @@ class WalletService
             $Validator->validate();
         } catch (ApiException $e) {
             // Store idempotency for validation errors
-            $response_code = $e->getCode();
-            $response_body = $e->toArray();
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
             throw $e;
         }
@@ -141,14 +139,12 @@ class WalletService
 
         if (empty($wallet)) {
             $e = new ApiException(404, 'Wallet not found');
-            $response_code = $e->getCode();
-            $response_body = $e->toArray();
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
             throw $e;
         }
@@ -212,18 +208,13 @@ class WalletService
 
         // Check idempotency key first
         $idempotency_endpoint = 'withdraw:'.$wallet_id;
-        $cached = $this->IdempotencyKeyStorage->checkIdempotencyKey(
+        $response = $this->IdempotencyKeyStorage->checkIdempotencyKey(
             $idempotency_key,
             $idempotency_endpoint,
             $request
         );
-
-        // If idempotency key exists with same request, return cached response
-        if (! empty($cached)) {
-            $response_body = json_decode($cached['response_body'], true);
-            $response_code = $cached['response_code'];
-
-            return $this->ServiceUtil->success($response_body, $response_code);
+        if (! empty($response)) {
+            return $response;
         }
 
         // Validate
@@ -242,14 +233,12 @@ class WalletService
             $Validator->validate();
         } catch (ApiException $e) {
             // Store idempotency for validation errors
-            $response_code = $e->getCode();
-            $response_body = $e->toArray();
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
             throw $e;
         }
@@ -258,30 +247,28 @@ class WalletService
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
 
         if (empty($wallet)) {
-            $response_code = 404;
-            $response_body = ['error' => 'Wallet not found'];
+            $e = new ApiException(404, 'Wallet not found');
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
-            throw new ApiException($response_code, 'Wallet not found');
+            throw $e;
         }
 
         // Check if sufficient balance
         if ($wallet['wallet_balance'] < $transaction_amount) {
-            $response_code = 400;
-            $response_body = ['error' => 'Insufficient balance'];
+            $e = new ApiException(400, 'Insufficient balance');
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
-            throw new ApiException($response_code, 'Insufficient balance');
+            throw $e;
         }
 
         // Perform withdrawal in transaction

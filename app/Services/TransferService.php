@@ -46,18 +46,13 @@ class TransferService
 
         // Check idempotency key first
         $idempotency_endpoint = 'transfer:'.$from_wallet_id.':'.$to_wallet_id;
-        $cached = $this->IdempotencyKeyStorage->checkIdempotencyKey(
+        $response = $this->IdempotencyKeyStorage->checkIdempotencyKey(
             $idempotency_key,
             $idempotency_endpoint,
             $request
         );
-
-        // If idempotency key exists with same request, return cached response
-        if (! empty($cached)) {
-            $response_body = json_decode($cached['response_body'], true);
-            $response_code = $cached['response_code'];
-
-            return $this->ServiceUtil->success($response_body, $response_code);
+        if (! empty($response)) {
+            return $response;
         }
 
         // Validate
@@ -84,90 +79,83 @@ class TransferService
             $Validator->validate();
         } catch (ApiException $e) {
             // Store idempotency for validation errors
-            $response_code = $e->getCode();
-            $response_body = $e->toArray();
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
             throw $e;
         }
 
         // Check if self-transfer
         if ($from_wallet_id == $to_wallet_id) {
-            $response_code = 400;
-            $response_body = ['error' => 'Cannot transfer to the same wallet'];
+            $e = new ApiException(400, 'Cannot transfer to the same wallet');
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
-            throw new ApiException($response_code, 'Cannot transfer to the same wallet');
+            throw $e;
         }
 
         // Check if from wallet exists
         $from_wallet = $this->WalletStorage->getWalletById($from_wallet_id);
 
         if (empty($from_wallet)) {
-            $response_code = 404;
-            $response_body = ['error' => 'Source wallet not found'];
+            $e = new ApiException(404, 'Source wallet not found');
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
-            throw new ApiException($response_code, 'Source wallet not found');
+            throw $e;
         }
 
         // Check if to wallet exists
         $to_wallet = $this->WalletStorage->getWalletById($to_wallet_id);
 
         if (empty($to_wallet)) {
-            $response_code = 404;
-            $response_body = ['error' => 'Target wallet not found'];
+            $e = new ApiException(404, 'Target wallet not found');
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
-            throw new ApiException($response_code, 'Target wallet not found');
+            throw $e;
         }
 
         // Check if both wallets have the same currency
         if (strtolower($from_wallet['wallet_currency']) !== strtolower($to_wallet['wallet_currency'])) {
-            $response_code = 400;
-            $response_body = ['error' => 'Cannot transfer between different currencies'];
+            $e = new ApiException(400, 'Cannot transfer between different currencies');
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
-            throw new ApiException($response_code, 'Cannot transfer between different currencies');
+            throw $e;
         }
 
         // Check if sufficient balance in source wallet
         if ($from_wallet['wallet_balance'] < $transaction_amount) {
-            $response_code = 400;
-            $response_body = ['error' => 'Insufficient balance'];
+            $e = new ApiException(400, 'Insufficient balance');
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
                 $request,
-                $response_code,
-                $response_body
+                $e->getCode(),
+                $e->toArray()
             );
-            throw new ApiException($response_code, 'Insufficient balance');
+            throw $e;
         }
 
         // Perform transfer in transaction
