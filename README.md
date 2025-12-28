@@ -62,7 +62,7 @@ php artisan key:generate
 
 ### 5. Setup Database
 
-#### Option A: Using Database Dump (Recommended)
+#### Using Database Dump
 
 1. Create a new database in MySQL:
    ```sql
@@ -73,15 +73,7 @@ php artisan key:generate
    ```bash
    mysql -u root -p eddekhar_wallet_service < eddekhar_wallet_service.sql
    ```
-
-#### Option B: Using Migrations
-
-Alternatively, you can run migrations if available:
-
-```bash
-php artisan migrate
-```
-
+   
 ### 6. Clear Configuration Cache
 
 ```bash
