@@ -99,18 +99,13 @@ class WalletService
 
         // Check idempotency key first
         $idempotency_endpoint = 'deposit:'.$wallet_id;
-        $cached = $this->IdempotencyKeyStorage->checkIdempotencyKey(
+        $response = $this->IdempotencyKeyStorage->checkIdempotencyKey(
             $idempotency_key,
             $idempotency_endpoint,
             $request
         );
-
-        // If idempotency key exists with same request, return cached response
-        if (! empty($cached)) {
-            $response_body = json_decode($cached['response_body'], true);
-            $response_code = $cached['response_code'];
-
-            return $this->ServiceUtil->success($response_body, $response_code);
+        if (! empty($response)) {
+            return $response;
         }
 
         // Validate
@@ -145,8 +140,9 @@ class WalletService
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
 
         if (empty($wallet)) {
-            $response_code = 404;
-            $response_body = ['error' => 'Wallet not found'];
+            $e = new ApiException(404, 'Wallet not found');
+            $response_code = $e->getCode();
+            $response_body = $e->toArray();
             $this->IdempotencyKeyStorage->insertIdempotencyKey(
                 $idempotency_key,
                 $idempotency_endpoint,
@@ -154,7 +150,7 @@ class WalletService
                 $response_code,
                 $response_body
             );
-            throw new ApiException($response_code, 'Wallet not found');
+            throw $e;
         }
 
         // Perform deposit in transaction
