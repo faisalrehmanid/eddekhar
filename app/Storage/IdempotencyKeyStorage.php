@@ -39,26 +39,38 @@ class IdempotencyKeyStorage
                         REQUEST_HASH,
                         RESPONSE_CODE,
                         RESPONSE_BODY,
-                        '.$exp->getDate('IDEMPOTENCY_KEY_CREATED_AT').' IDEMPOTENCY_KEY_CREATED_AT
+                        '.$exp->getDate('IDEMPOTENCY_KEY_CREATED_AT').' IDEMPOTENCY_KEY_CREATED_AT,
+                        '.$exp->getDate('IDEMPOTENCY_KEY_EXPIRED_AT').' IDEMPOTENCY_KEY_EXPIRED_AT
                     FROM '.DBSchema::IDEMPOTENCY_KEYS.'
                         WHERE
-                             IDEMPOTENCY_KEY = :IDEMPOTENCY_KEY
-                        AND IDEMPOTENCY_ENDPOINT = :IDEMPOTENCY_ENDPOINT
-                        AND '.$exp->getDate('IDEMPOTENCY_KEY_EXPIRED_AT').' > :CURRENT_DATE
+                             LOWER(IDEMPOTENCY_KEY) = LOWER(:IDEMPOTENCY_KEY)
                     LIMIT 1';
         $values = [
             ':IDEMPOTENCY_KEY' => $idempotency_key,
-            ':IDEMPOTENCY_ENDPOINT' => $idempotency_endpoint,
-            ':CURRENT_DATE' => date('Y-m-d H:i:s'),
         ];
         $row = $this->DB->fetchRow($query, $values);
 
-        // If key exists but with different request body, throw error
-        if (! empty($row) && $request_hash !== $row['request_hash']) {
-            throw new ApiException(409, 'Idempotency key reused with different request body');
-        }
+        if (! empty($row)) {
+            // If key exists but expired
+            if (strtotime($row['idempotency_key_expired_at']) < time()) {
+                throw new ApiException(400, 'Idempotency key has expired');
+            }
 
-        return $row;
+            // If key exists but with different endpoint
+            if ($idempotency_endpoint !== $row['idempotency_endpoint']) {
+                throw new ApiException(400, 'Idempotency key already used with different endpoint operation');
+            }
+
+            // If key exists but with different request body
+            if ($request_hash !== $row['request_hash']) {
+                throw new ApiException(400, 'Idempotency key already used with different request body');
+            }
+
+            // Send cached response
+            $response = json_decode($row['response_body'], true);
+
+            return $response;
+        }
     }
 
     public function insertIdempotencyKey(
@@ -96,8 +108,9 @@ class IdempotencyKeyStorage
 
         $query = ' DELETE FROM '.DBSchema::IDEMPOTENCY_KEYS.'
                     WHERE '.$exp->getDate('IDEMPOTENCY_KEY_EXPIRED_AT').' < :CURRENT_DATE ';
+        // Remove all keys that are 2 more than days older
         $values = [
-            ':CURRENT_DATE' => date('Y-m-d H:i:s'),
+            ':CURRENT_DATE' => date('Y-m-d H:i:s', strtotime('-2 day')),
         ];
         $this->DB->delete($query, $values);
     }
