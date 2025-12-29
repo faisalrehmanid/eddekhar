@@ -53,17 +53,26 @@ class IdempotencyKeyStorage
         if (! empty($row)) {
             // If key exists but expired
             if (strtotime($row['idempotency_key_expired_at']) < time()) {
-                throw new ApiException(400, 'Idempotency key has expired');
+                throw new ApiException(400,
+                    'Idempotency key has expired',
+                    [],
+                    'invalid_idempotency_key');
             }
 
             // If key exists but with different endpoint
             if ($idempotency_endpoint !== $row['idempotency_endpoint']) {
-                throw new ApiException(400, 'Idempotency key already used with different endpoint operation');
+                throw new ApiException(400,
+                    'Idempotency key already used with different endpoint operation',
+                    [],
+                    'invalid_idempotency_key');
             }
 
             // If key exists but with different request body
             if ($request_hash !== $row['request_hash']) {
-                throw new ApiException(400, 'Idempotency key already used with different request body');
+                throw new ApiException(400,
+                    'Idempotency key already used with different request body',
+                    [],
+                    'invalid_idempotency_key');
             }
 
             // Send cached response
