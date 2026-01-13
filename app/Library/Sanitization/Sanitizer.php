@@ -62,8 +62,8 @@ class Sanitizer
         return $this;
     }
 
-    // Sanitize as numeric digits (only numeric digits, no decimal points or chars)
-    public function digits($default = null): ?int
+    // Sanitize as int (only numeric digits, no decimal points or chars)
+    public function int($default = null): ?int
     {
         $v = (string) $this->value;
 

@@ -35,8 +35,8 @@ class TransferService
     public function createTransfer($idempotency_key, array $request)
     {
         // Sanitize
-        @$from_wallet_id = S::value($request['from_wallet_id'])->digits();
-        @$to_wallet_id = S::value($request['to_wallet_id'])->digits();
+        @$from_wallet_id = S::value($request['from_wallet_id'])->int();
+        @$to_wallet_id = S::value($request['to_wallet_id'])->int();
         @$transaction_amount = S::value($request['transaction_amount'])->string();
         @$transaction_description = S::value($request['transaction_description'])->string();
 

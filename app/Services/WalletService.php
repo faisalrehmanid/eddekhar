@@ -63,7 +63,7 @@ class WalletService
     public function getWallet($wallet_id)
     {
         // Sanitize
-        @$wallet_id = S::value($wallet_id)->digits();
+        @$wallet_id = S::value($wallet_id)->int();
 
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
 
@@ -89,7 +89,7 @@ class WalletService
         array $request
     ) {
         // Sanitize
-        @$wallet_id = S::value($wallet_id)->digits();
+        @$wallet_id = S::value($wallet_id)->int();
         @$transaction_amount = S::value($request['transaction_amount'])->string();
         @$transaction_description = S::value($request['transaction_description'])->string();
 
@@ -198,7 +198,7 @@ class WalletService
         array $request
     ) {
         // Sanitize
-        @$wallet_id = S::value($wallet_id)->digits();
+        @$wallet_id = S::value($wallet_id)->int();
         @$transaction_amount = S::value($request['transaction_amount'])->string();
         @$transaction_description = S::value($request['transaction_description'])->string();
 
@@ -317,7 +317,7 @@ class WalletService
     public function walletBalance($wallet_id)
     {
         // Sanitize
-        @$wallet_id = S::value($wallet_id)->digits();
+        @$wallet_id = S::value($wallet_id)->int();
 
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
 
@@ -333,7 +333,7 @@ class WalletService
     public function listWalletTransactions($wallet_id, array $request)
     {
         // Sanitize
-        @$wallet_id = S::value($wallet_id)->digits();
+        @$wallet_id = S::value($wallet_id)->int();
 
         $wallet = $this->WalletStorage->getWalletById($wallet_id);
 
